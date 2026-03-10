@@ -1,4 +1,8 @@
 export type RawSurveyRow = {
+  label_id: string;
+  tenant_id: string;
+  survey_participation_id: string;
+  participant_id: string;
   survey_id: string;
   question_id: string;
   evaluated_at: string;

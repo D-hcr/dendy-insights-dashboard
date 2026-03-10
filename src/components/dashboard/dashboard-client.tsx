@@ -141,7 +141,7 @@ export function DashboardClient() {
         />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid items-start gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="grid gap-6">
           <div className="grid gap-6 lg:grid-cols-2">
             <SentimentChart data={sentimentData} />
