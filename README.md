@@ -22,13 +22,13 @@ Bu sayede yöneticiler yüzlerce satır veriyi incelemek yerine **durumu tek ekr
 Bu projede `node_modules` klasörü repo'ya eklenmemiştir.  
 Projeyi çalıştırmadan önce bağımlılıkların kurulması gerekir.
 
-## 1. Projeyi Klonla
+### Projeyi Klonla
 
 ```bash
 git clone <repo-url>
 cd ne-dendy-case
 ```
-## 2. Node.js Kurulu Olduğundan Emin Ol
+### Node.js Kurulu Olduğundan Emin Ol
 
 Node.js 18 veya üzeri önerilir.
 
@@ -42,9 +42,7 @@ npm install
 npm run dev
 ```
 
-## 5. Tarayıcıda Aç
-
-http://localhost:3000
+Tarayıcıda Aç : http://localhost:3000
 
 # Veri Kaynağı
 
