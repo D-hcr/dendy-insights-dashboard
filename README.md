@@ -1,5 +1,16 @@
 # Ne Dendy? Insights Dashboard
 
+## Uygulama Görselleri
+
+### Dashboard Overview
+![Dashboard](screenshots/dashboard-overview.png)
+
+### Data Import
+![Data Import](screenshots/data-import.png)
+
+### Survey Comparison
+![Survey Comparison](screenshots/survey-comparison.png)
+
 Bu proje, Dendy.ai tarafından verilen **"Ne Dendy?" frontend case** görevi kapsamında geliştirilmiştir.
 
 Amaç, anket (survey) verilerini içeren bir CSV dosyasını okuyarak bu verileri **yöneticilerin hızlıca anlayabileceği bir içgörü paneline (insight dashboard)** dönüştürmektir.
