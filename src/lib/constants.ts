@@ -1,5 +1,6 @@
 export const NAV_ITEMS = [
   { href: "/", label: "Dashboard" },
+  { href: "/data-import", label: "Data Import" },
   { href: "/insights", label: "Insights" },
   { href: "/methodology", label: "Methodology" },
 ];

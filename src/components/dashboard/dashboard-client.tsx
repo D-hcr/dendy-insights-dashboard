@@ -8,14 +8,17 @@ import {
   MessageSquare,
 } from "lucide-react";
 
-import { fetchSurveyRows } from "@/lib/csv";
+import { fetchSurveyRows, parseUploadedCsvText } from "@/lib/csv";
+import { getUploadedCsv } from "@/lib/storage";
 import {
+  buildAiSummary,
   buildKpis,
   buildSentimentBreakdown,
   buildThemeBreakdown,
   getHighlightedInsights,
   getRiskRows,
   getSurveyOptions,
+  getThemeOptions,
 } from "@/lib/transformers";
 import { formatDecimal, formatPercent } from "@/lib/utils";
 import { SurveyRow } from "@/types/survey";
@@ -28,24 +31,48 @@ import { ThemeChart } from "@/components/dashboard/theme-chart";
 import { InsightList } from "@/components/dashboard/insight-list";
 import { RiskPanel } from "@/components/dashboard/risk-panel";
 import { SectionCard } from "@/components/ui/section-card";
+import { AdvancedFilters } from "@/components/dashboard/advanced-filters";
+import { AiSummaryCard } from "@/components/dashboard/ai-summary-card";
+import { SurveyComparison } from "@/components/dashboard/survey-comparison";
 
 export function DashboardClient() {
   const [rows, setRows] = useState<SurveyRow[]>([]);
   const [selectedSurveyId, setSelectedSurveyId] = useState("");
+  const [comparisonSurveyId, setComparisonSurveyId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [sentimentFilter, setSentimentFilter] = useState("all");
+  const [riskOnly, setRiskOnly] = useState(false);
+  const [themeFilter, setThemeFilter] = useState("all");
+  const [severityThreshold, setSeverityThreshold] = useState(0);
 
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
+        setError("");
 
-        const data = await fetchSurveyRows();
+        const uploaded = getUploadedCsv();
+
+        let data: SurveyRow[] = [];
+
+        if (uploaded.csvText) {
+          data = await parseUploadedCsvText(uploaded.csvText);
+        } else {
+          data = await fetchSurveyRows();
+        }
+
         setRows(data);
 
         const surveyOptions = getSurveyOptions(data);
+
         if (surveyOptions.length > 0) {
           setSelectedSurveyId(surveyOptions[0]);
+          setComparisonSurveyId(surveyOptions[1] ?? surveyOptions[0]);
+        } else {
+          setSelectedSurveyId("");
+          setComparisonSurveyId("");
         }
       } catch (err) {
         console.error(err);
@@ -59,10 +86,25 @@ export function DashboardClient() {
   }, []);
 
   const surveyOptions = useMemo(() => getSurveyOptions(rows), [rows]);
+  const themeOptions = useMemo(() => getThemeOptions(rows), [rows]);
 
   const filteredRows = useMemo(() => {
-    return rows.filter((row) => row.surveyId === selectedSurveyId);
-  }, [rows, selectedSurveyId]);
+    return rows
+      .filter((row) => row.surveyId === selectedSurveyId)
+      .filter(
+        (row) => sentimentFilter === "all" || row.sentiment === sentimentFilter
+      )
+      .filter((row) => !riskOnly || row.riskFlag)
+      .filter((row) => themeFilter === "all" || row.themes.includes(themeFilter))
+      .filter((row) => row.severity >= severityThreshold);
+  }, [
+    rows,
+    selectedSurveyId,
+    sentimentFilter,
+    riskOnly,
+    themeFilter,
+    severityThreshold,
+  ]);
 
   const kpis = useMemo(() => buildKpis(filteredRows), [filteredRows]);
   const sentimentData = useMemo(
@@ -78,6 +120,7 @@ export function DashboardClient() {
     [filteredRows]
   );
   const riskRows = useMemo(() => getRiskRows(filteredRows), [filteredRows]);
+  const aiSummary = useMemo(() => buildAiSummary(filteredRows), [filteredRows]);
 
   if (loading) {
     return (
@@ -104,7 +147,7 @@ export function DashboardClient() {
       <PageHeader
         eyebrow="Executive Insight Module"
         title="Ne Dendy? — survey verisini yönetsel içgörüye dönüştür"
-        description="Bu ekran, CSV üzerinden gelen survey yanıtlarını analiz ederek duygu dağılımı, kritik riskler, görünür insight'lar ve öne çıkan temaları tek bakışta gösterir. Amaç, yöneticinin aksiyon alabileceği özet bir karar alanı sunmaktır."
+        description="Bu ekran, CSV üzerinden gelen survey yanıtlarını analiz ederek duygu dağılımı, kritik riskler, görünür insight'lar ve öne çıkan temaları tek bakışta gösterir."
         action={
           <SurveySelect
             options={surveyOptions}
@@ -114,11 +157,23 @@ export function DashboardClient() {
         }
       />
 
+      <AdvancedFilters
+        sentiment={sentimentFilter}
+        onSentimentChange={setSentimentFilter}
+        riskOnly={riskOnly}
+        onRiskOnlyChange={setRiskOnly}
+        theme={themeFilter}
+        onThemeChange={setThemeFilter}
+        severityThreshold={severityThreshold}
+        onSeverityThresholdChange={setSeverityThreshold}
+        themeOptions={themeOptions}
+      />
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           label="Total Responses"
           value={String(kpis.totalResponses)}
-          hint="Seçili survey içindeki toplam kayıt"
+          hint="Seçili filtrelerde toplam kayıt"
           icon={<MessageSquare className="h-5 w-5" />}
         />
         <KpiCard
@@ -143,7 +198,7 @@ export function DashboardClient() {
 
       <div className="grid items-start gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="grid gap-6">
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid items-start gap-6 lg:grid-cols-2">
             <SentimentChart data={sentimentData} />
             <ThemeChart data={themeData} />
           </div>
@@ -169,17 +224,10 @@ export function DashboardClient() {
 
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                 <p className="text-sm text-slate-400">Survey ID</p>
-                <p className="mt-2 text-xl font-semibold break-all text-white">
-                  {selectedSurveyId}
+                <p className="mt-2 break-all text-xl font-semibold text-white">
+                  {selectedSurveyId || "-"}
                 </p>
               </div>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.05] p-4 text-sm leading-6 text-slate-300">
-              Öneri: Bu alana ileride server-side aggregation, benchmark
-              kıyasları, önceki dönem karşılaştırması ve aksiyon önerileri de
-              eklenebilir. Mevcut haliyle veri setinden doğrudan gelen
-              içgörüleri okunabilir ve yönetici dostu bir sunumla gösteriyoruz.
             </div>
           </SectionCard>
         </div>
@@ -190,36 +238,15 @@ export function DashboardClient() {
         </div>
       </div>
 
-      <SectionCard
-        title="Implementation Notes"
-        description="Case değerlendirmesinde anlatabileceğin kısa teknik notlar"
-      >
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-300">
-            <p className="font-semibold text-white">CSV Parsing</p>
-            <p className="mt-2">
-              Veri uygulama içinde <code>/public/data/data.csv</code> üzerinden
-              okunur ve Papa Parse ile parse edilir.
-            </p>
-          </div>
+      <AiSummaryCard summary={aiSummary} />
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-300">
-            <p className="font-semibold text-white">Component Architecture</p>
-            <p className="mt-2">
-              Navbar, shell, KPI kartları, chart ve insight blokları ayrı
-              component'lere bölünmüştür.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-300">
-            <p className="font-semibold text-white">Scalable UI</p>
-            <p className="mt-2">
-              Yapı yeni survey metrikleri, benchmark sayfaları ve drill-down
-              ekranları eklemeye uygundur.
-            </p>
-          </div>
-        </div>
-      </SectionCard>
+      <SurveyComparison
+        surveyA={selectedSurveyId}
+        surveyB={comparisonSurveyId}
+        rows={rows}
+        options={surveyOptions}
+        onSurveyBChange={setComparisonSurveyId}
+      />
     </div>
   );
 }

@@ -123,3 +123,54 @@ export function getRiskRows(rows: SurveyRow[]) {
     .sort((a, b) => b.severity - a.severity)
     .slice(0, 6);
 }
+
+export function getThemeOptions(rows: SurveyRow[]) {
+  const uniqueThemes = new Set<string>();
+
+  rows.forEach((row) => {
+    row.themes.forEach((theme) => uniqueThemes.add(theme));
+  });
+
+  return [...uniqueThemes].sort();
+}
+
+export function buildAiSummary(rows: SurveyRow[]) {
+  if (!rows.length) {
+    return "Seçili filtreler için analiz edilecek veri bulunamadı.";
+  }
+
+  const total = rows.length;
+
+  const negativeCount = rows.filter(
+    (row) => row.sentiment === "negative"
+  ).length;
+
+  const positiveCount = rows.filter(
+    (row) => row.sentiment === "positive"
+  ).length;
+
+  const riskCount = rows.filter((row) => row.riskFlag).length;
+
+  const themeCounter = new Map<string, number>();
+
+  rows.forEach((row) => {
+    row.themes.forEach((theme) => {
+      themeCounter.set(theme, (themeCounter.get(theme) ?? 0) + 1);
+    });
+  });
+
+  const mostCommonTheme =
+    [...themeCounter.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "unknown";
+
+  let tone = "Genel görünüm dengeli.";
+
+  if (negativeCount > positiveCount) {
+    tone = "Negatif eğilim dikkat çekiyor.";
+  }
+
+  if (positiveCount > negativeCount) {
+    tone = "Olumlu eğilim öne çıkıyor.";
+  }
+
+  return `Toplam ${total} kayıt analiz edildi. ${tone} Negatif kayıt sayısı ${negativeCount}, pozitif kayıt sayısı ${positiveCount}. Risk işaretli kayıt sayısı ${riskCount}. En sık öne çıkan tema: ${mostCommonTheme}.`;
+}

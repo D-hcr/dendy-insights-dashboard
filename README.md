@@ -1,36 +1,223 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ne Dendy? Insights Dashboard
 
-## Getting Started
+Bu proje, Dendy.ai tarafından verilen **"Ne Dendy?" frontend case** görevi kapsamında geliştirilmiştir.
 
-First, run the development server:
+Amaç, anket (survey) verilerini içeren bir CSV dosyasını okuyarak bu verileri **yöneticilerin hızlıca anlayabileceği bir içgörü paneline (insight dashboard)** dönüştürmektir.
+
+Dashboard, ham veriyi doğrudan göstermenin yerine aşağıdaki gibi anlamlı özetler üretir:
+
+- KPI metrikleri
+- Duygu (sentiment) dağılımı
+- Tema (theme) analizi
+- Risk içeren kayıtlar
+- Öne çıkan içgörüler
+- Yönetici özeti (AI-style summary)
+
+Bu sayede yöneticiler yüzlerce satır veriyi incelemek yerine **durumu tek ekranda anlayabilir.**
+
+---
+
+# Projeyi Çalıştırma
+
+Bu projede `node_modules` klasörü repo'ya eklenmemiştir.  
+Projeyi çalıştırmadan önce bağımlılıkların kurulması gerekir.
+
+## 1. Projeyi Klonla
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repo-url>
+cd ne-dendy-case
+```
+## 2. Node.js Kurulu Olduğundan Emin Ol
+
+Node.js 18 veya üzeri önerilir.
+
+Kontrol etmek için:
+
+```node -v```
+## 3. Bağımlılıkları Kur
+
+```npm install```
+
+Bu komut proje için gerekli tüm paketleri yükler.
+
+## 4. Geliştirme Sunucusunu Başlat
+
+```npm run dev```
+## 5. Tarayıcıda Aç
+
+http://localhost:3000
+
+Veri Kaynağı
+
+# Varsayılan veri dosyası:
+
+```public/data/data.csv```
+
+Uygulama başlatıldığında bu CSV dosyası okunur ve analiz edilir.
+
+Ek olarak kullanıcı Data Import sayfasından yeni bir CSV dosyası yükleyebilir.
+Yüklenen veri localStorage içerisinde saklanır ve dashboard o veriyi kullanır.
+
+# Projenin Özellikleri
+
+Dashboard aşağıdaki özellikleri içerir:
+- CSV dosyasını uygulama içinde okuyup parse etme
+- survey_id bazlı filtreleme
+- KPI metrikleri gösterimi
+- Sentiment (duygu) dağılım grafiği
+- Tema analizi grafiği
+- Risk içeren kayıtları gösterme
+- Öne çıkan içgörülerin listelenmesi
+- Yönetici özeti (AI-style insight summary)
+- CSV veri yükleme sistemi
+- İki survey arasında karşılaştırma paneli
+- Filtreleme sistemi
+
+# Kullanılan Teknolojiler
+
+## Next.js
+
+Next.js framework'ü tercih edilmiştir çünkü:
+- sayfa yapısını düzenli kurmayı sağlar
+- React tabanlıdır
+- component mimarisi için uygundur
+- dashboard projeleri için hızlı geliştirme imkanı sunar
+
+## TypeScript
+
+TypeScript kullanılmasının nedeni:
+
+CSV verisi ham formatta geldiği için veri dönüşümlerini güvenli hale getirmek.
+
+TypeScript sayesinde:
+- veri tipleri net tanımlanır
+- hatalar erken yakalanır
+- kod okunabilirliği artar
+
+## Tailwind CSS
+
+Arayüz geliştirme sürecini hızlandırmak ve tutarlı bir tasarım oluşturmak için Tailwind CSS kullanılmıştır.
+
+Avantajları:
+- hızlı UI geliştirme
+- component bazlı stil
+- temiz ve minimal dashboard görünümü
+
+## Papa Parse
+
+CSV dosyasını parse etmek için kullanılmıştır.
+
+CSV dosyaları genellikle string formatında olduğu için Papa Parse:
+- header bazlı parse
+- güvenli veri okuma
+- hızlı dönüşüm
+sağlar.
+
+## Recharts
+
+Grafikler için kullanılmıştır.
+
+Dashboard içinde kullanılan grafikler:
+- sentiment dağılımı
+- tema dağılımı
+Bu grafikler yöneticinin veriyi hızlı anlamasını sağlar.
+
+# Proje Yapısı
+```
+src/
+├─ app/
+│  ├─ page.tsx
+│  ├─ data-import/page.tsx
+│  ├─ insights/page.tsx
+│  └─ methodology/page.tsx
+│
+├─ components/
+│  ├─ layout/
+│  ├─ dashboard/
+│  └─ ui/
+│
+├─ lib/
+│  ├─ csv.ts
+│  ├─ transformers.ts
+│  ├─ utils.ts
+│  ├─ constants.ts
+│  └─ storage.ts
+│
+└─ types/
+   └─ survey.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# Sistem Nasıl Çalışır
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Sistem aşağıdaki adımlarla çalışır:
+1. CSV dosyası public/data/data.csv içinden okunur
+2. Papa Parse ile CSV parse edilir
+3. Ham veri normalize edilir
+4. survey_id bazlı filtre uygulanır
+5. Veriden türetilmiş metrikler hesaplanır
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Bu metrikler:
 
-## Learn More
+KPI değerleri
+- sentiment dağılımı
+- tema frekansları
+- risk kayıtları
+- insight listesi
+olur.
 
-To learn more about Next.js, take a look at the following resources:
+Bu veriler daha sonra dashboard bileşenlerine gönderilerek görselleştirilir.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Dashboard Bölümleri
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Dashboard aşağıdaki ana bileşenlerden oluşur:
 
-## Deploy on Vercel
+## KPI Cards
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Temel metrikler:
+- Total Responses
+- Visible Insights
+- Average Score
+- Risk Count
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Sentiment Distribution
+
+Kullanıcı yorumlarının duygu dağılımını gösterir:
+- Positive
+- Neutral
+- Negative
+- Unknown
+
+## Top Themes
+
+En sık tekrar eden temaları gösterir.
+
+Bu sayede yöneticiler kullanıcıların en çok hangi konulardan bahsettiğini görebilir.
+
+## Risk Watch
+
+Risk flag taşıyan kayıtları gösterir.
+
+Bu panel yöneticinin kritik durumları hızlıca fark etmesini sağlar.
+
+## Highlighted Insights
+
+En önemli içgörülerin listelendiği paneldir.
+
+Ham veriden çıkarılan anlamlı özetleri gösterir.
+
+## AI Insight Summary
+
+Filtrelenmiş veriye göre otomatik oluşturulan kısa yönetici özeti.
+
+Gerçek bir LLM kullanılmadan rule-based mantıkla üretilmiştir.
+
+## Survey Comparison
+
+İki farklı survey'in yan yana karşılaştırılmasını sağlar.
+
+Karşılaştırma alanında:
+- sentiment dağılımı
+- tema dağılımı
+- temel KPI verileri
+gösterilir.
