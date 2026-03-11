@@ -34,24 +34,21 @@ Node.js 18 veya üzeri önerilir.
 
 Kontrol etmek için:
 
-```node -v```
-## 3. Bağımlılıkları Kur
+```
+node -v
 
-```npm install```
+npm install
 
-Bu komut proje için gerekli tüm paketleri yükler.
+npm run dev
+```
 
-## 4. Geliştirme Sunucusunu Başlat
-
-```npm run dev```
 ## 5. Tarayıcıda Aç
 
 http://localhost:3000
 
-Veri Kaynağı
+# Veri Kaynağı
 
-# Varsayılan veri dosyası:
-
+Varsayılan veri dosyası:
 ```public/data/data.csv```
 
 Uygulama başlatıldığında bu CSV dosyası okunur ve analiz edilir.
